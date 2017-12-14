@@ -2,7 +2,6 @@ import pygame
 import math
 import Controller
 from Model.GameObj import GameObj as GameObj
-import main
 
 class Ship(GameObj):
     def __init__(self,x,y):

@@ -5,23 +5,16 @@ from Model.Asteroid import Asteroid
 from Screen.Screen import *
 from Model.GameObj import GameObj
 from Model.Bullet import Bullet
+import View.Renderer
 
 class GameScreen(Screen):
 
     def __init__(self, game):
-        super().__init__("Start",game)
-        self.ship = Ship(game.width/2,game.height/2);
-        self.gameObjects =[]
-        self.gameObjects.append(self.ship)
-        for i in range(20):
-            self.gameObjects.append(Asteroid(random.random()*game.width,random.random()*game.height))
         self.game = game
-        self.score =0;
 
     def renderScreen(self,screen,delta):
         #self.ship.render(screen,delta,self.game)
-        for gameObject in self.gameObjects:
-            gameObject.render(screen,delta,self.game)
+        pass
 
 
     def handleEvent(self,event):
@@ -29,6 +22,11 @@ class GameScreen(Screen):
         Controller.eventHandle(event)
 
     def updateScreen(self,delta):
+        game = self.game
+        if(Controller.inputButtons["debug"]):
+            View.Renderer.DEBUG=not View.Renderer.DEBUG;
+            Controller.inputButtons["debug"] = False
+
         # self.ship.update(delta)
         # if(self.ship.position.x<0):
         #     self.ship.position.x=self.game.size[0];
@@ -41,19 +39,19 @@ class GameScreen(Screen):
         #
         # if(self.ship.position.y>self.game.size[1]):
         #     self.ship.position.y=0;
-        if(self.ship.coolDown<=0 and Controller.inputButtons["shot"]):
-            self.gameObjects.append(Bullet(self.ship.position.x,self.ship.position.y,500,self.ship.rotation,self.ship))
-            self.ship.coolDown=self.ship.maxColdown;
+        if(game.ship.coolDown<=0 and Controller.inputButtons["shot"]):
+            game.gameObjects.append(Bullet(game.ship.position.x,game.ship.position.y,500,game.ship.rotation,game.ship))
+            game.ship.coolDown=game.ship.maxColdown;
 
-        for (i,gameObject) in enumerate(self.gameObjects):
+        for (i,gameObject) in enumerate(game.gameObjects):
             if(not gameObject.alive):
-                self.gameObjects.pop(i)
+                game.gameObjects.pop(i)
                 print("rmove ",i)
                 continue
             gameObject.update(delta)
             if(isinstance(gameObject,Asteroid) and gameObject.hit):
                 gameObject.alive = False
-                self.score+=1;
+                game.score+=1;
                 if(gameObject.size/2 >0.05):
                     aster1 = Asteroid(gameObject.position.x,gameObject.position.y)
                     aster1.mass = gameObject.mass/2
@@ -65,23 +63,23 @@ class GameScreen(Screen):
                     aster2.size = gameObject.size/2
                     aster2.velocity = -aster1.velocity
 
-                    self.gameObjects.append(aster1)
-                    self.gameObjects.append(aster2)
+                    game.gameObjects.append(aster1)
+                    game.gameObjects.append(aster2)
 
-            for gameObject2 in self.gameObjects[i+1:]:
+            for gameObject2 in game.gameObjects[i+1:]:
                 if(gameObject.checkCollision(gameObject2) and gameObject.isCollideable(gameObject2) and gameObject2.isCollideable(gameObject)):
                     gameObject.collide(gameObject2)
 
                 if(gameObject.position.x<0):
-                    gameObject.position.x=self.game.size[0];
+                    gameObject.position.x=game.WIDTH;
 
-                if(gameObject.position.x>self.game.size[0]):
+                if(gameObject.position.x>game.WIDTH):
                     gameObject.position.x=0;
 
                 if(gameObject.position.y<0):
-                    gameObject.position.y=self.game.size[1];
+                    gameObject.position.y=game.HEIGHT;
 
-                if(gameObject.position.y>self.game.size[1]):
+                if(gameObject.position.y>game.HEIGHT):
                     gameObject.position.y=0;
 
 

@@ -9,8 +9,8 @@ import random
 
 class GameData:
     def __init__(self):
-        self.WIDTH = 2000
-        self.HEIGHT = 1500
+        self.WIDTH = 3200
+        self.HEIGHT = 1800
         self.ship = Ship(self.WIDTH/2,self.HEIGHT/2);
         self.gameObjects = []
         self.gameObjects.append(self.ship)
@@ -23,6 +23,7 @@ class App:
         print("constructor")
         self.renderer = None;
         self.GameData = GameData()
+        self.current_screen = None
         self.done = False
         self.init()
 
@@ -32,6 +33,7 @@ class App:
         if(pygame.joystick.get_count() >0):
             pygame.joystick.Joystick(0).init();
         self.done = False
+        self.current_screen = GameScreen(self.GameData)
         return True
 
     def cleanup(self):
@@ -49,9 +51,9 @@ class App:
             for event in pygame.event.get():
                 if event.type  == pygame.QUIT:
                     self.done = True
-                #self.current_screen.handleEvent(event)
+                self.current_screen.handleEvent(event)
 
-            #self.current_screen.updateScreen(delta)
+            self.current_screen.updateScreen(delta)
             self.renderer.render(self.GameData)
             #self.current_screen.renderScreen(self.screen,delta)
 

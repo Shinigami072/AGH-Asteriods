@@ -49,10 +49,12 @@ class GameObj:
     def checkCollision(self, a):
             if None is self.getCollider() or a.getCollider() is None:
                 return False
-
             diff = self.position-a.position
             dist = (self.getCollider()+a.getCollider())**2
-            return diff.length_squared()<=dist
+            collided = diff.length_squared()<=dist
+            if(collided):
+                print("collider:", self.getCollider(), a.getCollider(),dist-diff.length_squared())
+            return collided
 
     def update(self,delta):
             self.updateMotion(delta)
