@@ -2,7 +2,6 @@ import random
 
 import Controller;
 from Model.Asteroid import Asteroid
-from Model.Ship import Ship
 from Screen.Screen import *
 from Model.GameObj import GameObj
 from Model.Bullet import Bullet
