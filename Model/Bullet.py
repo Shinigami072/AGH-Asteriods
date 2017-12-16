@@ -8,10 +8,7 @@ class Bullet(GameObj):
         self.velocity=pygame.math.Vector2(speed,0).rotate(angle);
         self.life = 2
         self.owner=owner
-        self.mass=0.01
-
-    def render(self,screen,delta,game):
-        pygame.draw.circle(screen,(255,255,255),(math.floor(self.position.x),math.floor(self.position.y)),math.floor(5));
+        self.mass=250
 
     def onCollide(self,a):
         if(a ==self.owner):

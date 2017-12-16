@@ -52,8 +52,6 @@ class GameObj:
             diff = self.position-a.position
             dist = (self.getCollider()+a.getCollider())**2
             collided = diff.length_squared()<=dist
-            if(collided):
-                print("collider:", self.getCollider(), a.getCollider(),dist-diff.length_squared())
             return collided
 
     def update(self,delta):

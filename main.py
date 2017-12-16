@@ -16,7 +16,9 @@ class GameData:
         self.gameObjects.append(self.ship)
         for i in range(20):
             self.gameObjects.append(Asteroid(random.random() * self.WIDTH, random.random() * self.HEIGHT))
+            #self.gameObjects[1+i].velocity = pygame.math.Vector2(0,0);
         self.score = 0;
+        self.hp = 3;
 
 class App:
     def __init__(self):
@@ -54,7 +56,7 @@ class App:
                 self.current_screen.handleEvent(event)
 
             self.current_screen.updateScreen(delta)
-            self.renderer.render(self.GameData)
+            self.renderer.render(self.GameData,delta)
             #self.current_screen.renderScreen(self.screen,delta)
 
         self.cleanup()
