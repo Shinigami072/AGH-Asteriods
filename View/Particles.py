@@ -29,7 +29,6 @@ class ParticleThruster(Particle):
         self.velocity =-self.velocity.rotate(rotation)
         self.life =0.2+(0.5+0.4*random.random())*scale;
 
-
     def updateMotion(self,delta):
         self.velocity += self.acceleration*delta;
         self.position += self.velocity*delta;

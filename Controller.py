@@ -39,7 +39,6 @@ def eventHandle(event):
             inputButtons["debug"] = True
         if (event.key == pygame.K_i):
             inputButtons["inV"] = True
-
     if(event.type == pygame.KEYUP):
         if(event.key == pygame.K_UP):
             handleMovement(inputVector.x,inputVector.y-1);

@@ -17,6 +17,8 @@ M_TO_P = 10
 BLACK = (0,0,0)
 WHITE = (255,255,255)
 DEBUG_BLUE = (0,220,220)
+DEBUG_PURPLE = (220,0,220)
+
 DEBUG = True
 
 def getMP(m):
@@ -101,7 +103,11 @@ class VectorRenderer(Renderer):
                            (getMP(object.position.x+object.velocity.x),getMP(object.position.y+object.velocity.y)))
 
     def renderCollider(self,object):
-        pygame.draw.circle(self.screen,DEBUG_BLUE,(math.floor(getMP(object.position.x)),math.floor(getMP(object.position.y))),math.floor(getMP(object.getCollider())),min(2,math.floor(getMP(object.getCollider()))));
+        rad = object.getCollider()
+        if rad is None:
+            return
+
+        pygame.draw.circle(self.screen,DEBUG_BLUE,(math.floor(getMP(object.position.x)),math.floor(getMP(object.position.y))),math.floor(getMP(rad)),min(2,math.floor(getMP(rad))));
 
     def renderShipAt(self,x,y,size,rotation):
         pygame.draw.polygon(self.screen,WHITE,
@@ -158,6 +164,12 @@ class VectorRenderer(Renderer):
                 self.renderShip(gameObject,game.WIDTH,game.HEIGHT)
             if (isinstance(gameObject, Bullet.Bullet)):
                 self.renderBullet(gameObject)
+            if (isinstance(gameObject, GameObj.ParticleEmiter)):
+                if (DEBUG):
+                    pygame.draw.circle(self.screen,DEBUG_PURPLE,(math.floor(getMP(gameObject.position.x)),math.floor(getMP(gameObject.position.y))),10)
+                if(gameObject.emitCooldown<=0):
+                    for i in range(gameObject.emitCount):
+                        self.particles.append(gameObject.getParticle())
             if(DEBUG):
                     if(isinstance(gameObject,GameObj.GameObj)):
                         self.renderVelocity(gameObject)

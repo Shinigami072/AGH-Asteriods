@@ -1,4 +1,6 @@
 import pygame
+import View.Particles
+import random
 #m - kg
 #V - m/s
 class GameObj:
@@ -47,7 +49,7 @@ class GameObj:
         self.onCollide(a)
 
     def checkCollision(self, a):
-            if None is self.getCollider() or a.getCollider() is None:
+            if None is self.getCollider() or a.getCollider() is None or not self.alive or not a.alive:
                 return False
             diff = self.position-a.position
             dist = (self.getCollider()+a.getCollider())**2
@@ -55,4 +57,37 @@ class GameObj:
             return collided
 
     def update(self,delta):
+            self.updateMotion(delta)
+class ParticleEmiter(GameObj):
+    def __init__(self,x,y):
+        self.position =pygame.math.Vector2(x,y)
+        self.velocity =pygame.math.Vector2(0,0)
+        self.acceleration = pygame.math.Vector2(0,0)
+        self.rotation = 0
+        self.maxAccel=50;
+        self.mass=1;
+        self.alive = True
+        self.emitCount =100
+        self.emitCooldown=0.01;
+        self.emitCooldownMax=10;
+
+    def getParticle(self):
+        #p = View.Particles.ParticleThruster(self.position.x,self.position.y,random.random()*360,random.random()*10)
+        p = View.Particles.Particle(self.position.x,self.position.y)
+        p.velocity += pygame.math.Vector2(0,random.random()*150+50).rotate(random.random()*360)
+        p.position += pygame.math.Vector2(0,400).rotate(random.random()*360)
+        return p
+
+    def isCollideable(self,a):
+        return False
+
+    def checkCollision(self, a):
+        return False
+
+    def update(self,delta):
+            if(self.emitCooldown>0):
+                self.emitCooldown-=delta
+            else:
+                self.emitCooldown=self.emitCooldownMax
+
             self.updateMotion(delta)

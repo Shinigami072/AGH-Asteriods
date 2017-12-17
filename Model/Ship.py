@@ -8,10 +8,10 @@ class Ship(GameObj):
         super().__init__(x,y);
         self.rotation = 0
         self.maxRotation =200;
-        self.maxAccel=150;
+        self.maxAccel=250;
         self.size = 0.5
         self.coolDown = 0;
-        self.maxColdown =0.5;
+        self.maxColdown =0.2;
         self.mass = 20000
         self.dead=False
         self.thrusting = False
