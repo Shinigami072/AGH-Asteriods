@@ -1,0 +1,27 @@
+#Classic ship Model
+VERTEX, 1.0, 0.0
+VERTEX, -0.25, 0.5
+VERTEX, 0, 0
+VERTEX, -0.25, -0.5
+PARTICLE, explode, ExE ,30
+
+PARTICLE, thrusterMain, ThE ,0:0:0:30:7:1
+PARTICLE, thrusterBack1, ThE ,1:-0.075:225:15:2:0.2
+PARTICLE, thrusterBack2, ThE ,1:0.075:135:15:2:0.2
+
+PARTICLE, thrusterLeft1, ThE ,0.9:0.1:90:15:2:0.2
+PARTICLE, thrusterLeft2, ThE ,0.1:0.3:90:15:2:0.2
+
+PARTICLE, thrusterRight1, ThE ,0.9:-0.1:-90:15:2:0.2
+PARTICLE, thrusterRight2, ThE ,0.1:-0.3:-90:15:2:0.2
+
+PARTICLEGROUP, thrusterUP,thrusterMain
+PARTICLEGROUP, thrusterDOWN,thrusterBack1:thrusterBack2
+PARTICLEGROUP, thrusterLEFT,thrusterLeft1:thrusterLeft2
+PARTICLEGROUP, thrusterRIGHT,thrusterRight1:thrusterRight2
+
+PARTICLEGROUP, thrusterRotLeft,thrusterLeft1:thrusterRight2
+PARTICLEGROUP, thrusterRotRight,thrusterRight1:thrusterLeft2
+PARTICLEGROUP, thrusters,thrusterMain:thrusterBack1:thrusterBack2:thrusterLeft1:thrusterLeft2:thrusterRight1:thrusterRight2
+
+

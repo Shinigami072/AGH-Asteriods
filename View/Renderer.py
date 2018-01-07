@@ -5,178 +5,268 @@ import Model.Asteroid as Asteroid
 import Model.Bullet as Bullet
 import Model.GameObj as GameObj
 import Model.Ship as Ship
+from Model.Enemy import Enemy
 import View.Particles as Particles
-
+import Files
+import Controller
+from Model.LootBox import LootBox
 FPS = 60
 #HEIGHT_P = 720
 #WIDTH_P = 1280
 HEIGHT_P = 1080
 WIDTH_P = 1920
-M_TO_P = 10
 
 BLACK = (0,0,0)
 WHITE = (255,255,255)
 DEBUG_BLUE = (0,220,220)
 DEBUG_PURPLE = (220,0,220)
+DEBUG_YELLOW = (220,220,0)
 
-DEBUG = True
 
-def getMP(m):
-    return m/M_TO_P
-def getMPPos(m):
-    return getMP(m-20)
+
+#
+#klasa rozdzielająca gamespace i screenspace
+#zajmuje się całóścią renderowania
 
 class Renderer:
-
-    def __init__(self,game):
-        global M_TO_P
+    fonts ={}
+    def __init__(self,width,height):
         global WIDTH_P
         global HEIGHT_P
 
-        M_TO_P = max((game.WIDTH-80)/WIDTH_P,(game.HEIGHT-80)/HEIGHT_P)
+        self.M_TO_P = max((width)/WIDTH_P,(height)/HEIGHT_P)
         pygame.init()
         self.screen = pygame.display.set_mode((WIDTH_P, HEIGHT_P))
+        if(len(Renderer.fonts) ==0):
+            Renderer.fonts = {"default":pygame.font.SysFont(pygame.font.get_default_font(), 72)}
+        self.font = Renderer.fonts["default"]
         self.clock = pygame.time.Clock()
+        self.DEBUG = False
 
-    def render(self,game):
+    def render(self,game,delta):
         pass
 
-ASTEROID_SHAPES = {
-        "XLARGE": (
-            [(0, 0.6), (0.9, 1), (1, 0.6),(0.7, 0.65), (0.7, 0.3),(1.1,0), (1.1,-0.1),(0.4,-0.5), (0.6,-0.9), (-0.5,-1),(-1,-0.1),(-0.7,0.3),(-0.3,0.7)],
-            [(0, -1), (0.8, -0.7), (0.9, 0), (1, 0.5), (0.5, 1), (-0.8, 0.5), (-0.5, 0),(-0.5, -0.6)],
-            [(0.5,-0.25),(1.1,0.4),(0.1,1),(-0.6,0.6),(-1,-0.5),(-0.5,-0.7)],
-            [(0,-1),(1,-0.55),(0.5,0.5),(0.1,0.6),(0,1),(-0.4,1),(-0.5,0.3),(-1,0.1),(-0.7,-0.5),(-0.4,-0.5)]
-        ),
-        "LARGE": (
-            [(0, -1), (0.8, -0.7), (0.9, 0), (1, 0.5), (0.5, 1), (-0.8, 0.5), (-0.5, 0), (-0.5, -0.6)],
-            [(0.5, -0.25), (1.1, 0.4), (0.1, 1), (-0.6, 0.6), (-1, -0.5), (-0.5, -0.7)],
-            [(0, -1), (1, -0.55), (0.5, 0.5), (0.1, 0.6), (0, 1), (-0.4, 1), (-0.5, 0.3), (-1, 0.1), (-0.7, -0.5),
-             (-0.4, -0.5)],
-            [(-0.9, 0.1), (-0.1, 1), (1, 0.1), (0.9, -1), (-0.1, -0.9)],
-            [(-0.1, -0.9), (-0.9, 0.1), (-0.1, 1), (0, 0.9), (0.8, -0.7)]
-        ),
-        "MEDIUM": (
-            [(0, 0.1), (1, 0.1), (1, 1), (-1, 0.6)],
-            [(-1, 0.1), (0, 1), (1, 0.1), (0.5, -1), (-0.5, -0.7)],
-            [(-0.9, 0.1), (-0.1, 1), (1, 0.1), (0.9, -1), (-0.1, -0.9)],
-            [(0, 0.1), (1, 0.1), (-1, -1), (-1, 0.6)],
-            [(-0.1, -0.9), (-0.9, 0.1), (-0.1, 1), (0, 0.9), (0.8, -0.7)]
-        ),
-        "SMALL": (
-            [(0, 0.1), (1, 0.1), (1, 1), (-1, 0.6)],
-            [(-1, 0.1), (0, 1), (1, 0.1), (0.5, -1), (-0.5, -0.7)],
-            [(-0.9, 0.1), (-0.1, 1), (1, 0.1), (0.9, -1), (-0.1, -0.9)],
-            [(0, 0.1), (1, 0.1), (-1, -1), (-1, 0.6)],
-            [(-0.1, -0.9), (-0.9, 0.1), (-0.1, 1), (0, 0.9), (0.8, -0.7)]
-        )
+    def getMP(self,m):
+        return m / self.M_TO_P
 
-    }
+    def getMPPos(self,m):
+        return self.getMP(m - 20)
 
 
 class VectorRenderer(Renderer):
 
-    def __init__(self,game):
-        super().__init__(game)
-        self.font = pygame.font.SysFont(pygame.font.get_default_font(), 72)
+    def __init__(self,width,height):
+        super().__init__(width,height)
+        self.M_TO_P = max((width-80)/WIDTH_P,(height-80)/HEIGHT_P)
         self.shipTimer = 0.2
+        self.lootTimer = 0.2
         self.particles = []
+        self.particleCount=0;
 
     def renderAsteroid(self,astroid):
         #pygame.draw.circle(self.screen,WHITE,(math.floor(getMP(astroid.position.x)),math.floor(getMP(astroid.position.y))),math.floor(getMP(Asteroid.ASTEROID_SIZES[astroid.size]["size"])));
-        choices =len(ASTEROID_SHAPES[astroid.size])
-        shape = []
-        rot = math.radians(astroid.rotation)
-        scale = Asteroid.ASTEROID_SIZES[astroid.size]["size"]
-
-        for point in ASTEROID_SHAPES[astroid.size][astroid.appearance%choices]:
-            shape.append(
-        (getMP((math.cos(rot)*point[0]-math.sin(rot)*point[1])*scale+astroid.position.x),
-         getMP(-(math.cos(rot)*point[1]+math.sin(rot)*point[0])*scale+astroid.position.y)))
-
+        rot = astroid.rotation
+        scale = self.getMP(Asteroid.ASTEROID_SIZES[astroid.size]["size"])
+        shape = astroid.model.getModel(self.getMP(astroid.position.x),self.getMP(astroid.position.y),rot=rot,scale=scale)
         pygame.draw.polygon(self.screen,WHITE,shape)
 
 
     def renderVelocity(self,object):
         pygame.draw.aaline(self.screen,DEBUG_BLUE,
-                           (getMP(object.position.x),getMP(object.position.y)),
-                           (getMP(object.position.x+object.velocity.x),getMP(object.position.y+object.velocity.y)))
+                           (self.getMP(object.position.x),self.getMP(object.position.y)),
+                           (self.getMP(object.position.x+object.velocity.x),self.getMP(object.position.y+object.velocity.y)))
+    def renderRotation(self,object):
+        test = pygame.math.Vector2(100, 0);
+        pygame.draw.aaline(self.screen, DEBUG_PURPLE,
+                           (self.getMP(object.position.x + (test.rotate(object.rotation) / 2).x),
+                            self.getMP(object.position.y + (test.rotate(object.rotation) / 2).y)),
+                           (self.getMP(object.position.x + test.rotate(object.rotation).x),
+                            self.getMP(object.position.y + test.rotate(object.rotation).y)))
+       # self.screen.blit(
+       #         self.font.render("rot:{:3.1f}' rotV{:3.1f}'/s ".format(object.rotation, object.rotVel), True,
+       #                          DEBUG_BLUE), (self.getMP(object.position.x), self.getMP(object.position.y) - 35))
 
     def renderCollider(self,object):
         rad = object.getCollider()
         if rad is None:
             return
 
-        pygame.draw.circle(self.screen,DEBUG_BLUE,(math.floor(getMP(object.position.x)),math.floor(getMP(object.position.y))),math.floor(getMP(rad)),min(2,math.floor(getMP(rad))));
+        pygame.draw.circle(self.screen,DEBUG_BLUE,(math.floor(self.getMP(object.position.x)),math.floor(self.getMP(object.position.y))),math.floor(self.getMP(rad)),min(2,math.floor(self.getMP(rad))));
 
     def renderShipAt(self,x,y,size,rotation):
-        pygame.draw.polygon(self.screen,WHITE,
-                            ((x+getMP(size*80)*math.cos(math.radians(rotation)),y+getMP(size*80)*math.sin(math.radians(rotation))),
-                             (x+getMP(size*40)*math.cos(math.radians(rotation+120)),y+getMP(size*40)*math.sin(math.radians(rotation+120))),
-                             (x,y),
-                             (x+getMP(size*40)*math.cos(math.radians(rotation-120)),y+getMP(size*40)*math.sin(math.radians(rotation-120)))))
+        m = Files.Models["Classic"]
+
+        pygame.draw.polygon(self.screen,WHITE, m.getModel(x,y,scale=size,rot=rotation))
+
+        #print((80 * math.cos(math.radians(0)), 80 * math.sin(math.radians(0))),
+        #      (40 * math.cos(math.radians(120)), 40 * math.sin(math.radians(120))),
+        #      (0, 0),
+        #      (40 * math.cos(math.radians(-120)), 40 * math.sin(math.radians(-120))))
+
+        #pygame.draw.polygon(self.screen,WHITE,
+        #                    ((x+self.getMP(size*80)*math.cos(math.radians(rotation)),y+self.getMP(size*80)*math.sin(math.radians(rotation))),
+        #                     (x+self.getMP(size*40)*math.cos(math.radians(rotation+120)),y+self.getMP(size*40)*math.sin(math.radians(rotation+120))),
+        #                     (x,y),
+        #                     (x+self.getMP(size*40)*math.cos(math.radians(rotation-120)),y+self.getMP(size*40)*math.sin(math.radians(rotation-120)))))
 
     def renderShip(self,ship,width,height):
-        self.renderShipAt(getMP(ship.position.x)        ,getMP(ship.position.y)          ,ship.size,ship.rotation)
-        self.renderShipAt(getMP(ship.position.x+width)  ,getMP(ship.position.y)          ,ship.size,ship.rotation)
-        self.renderShipAt(getMP(ship.position.x-width)  ,getMP(ship.position.y)          ,ship.size,ship.rotation)
-        self.renderShipAt(getMP(ship.position.x)        ,getMP(ship.position.y+height)   ,ship.size,ship.rotation)
-        self.renderShipAt(getMP(ship.position.x)        ,getMP(ship.position.y-height)   ,ship.size,ship.rotation)
+        rot = ship.rotation
+        scale = self.getMP(ship.scale*ship.modelScale)
+        shape = ship.model.getModel(self.getMP(ship.position.x),self.getMP(ship.position.y),rot=rot,scale=scale)
+        if(self.shipTimer<0.2):
+            pygame.draw.polygon(self.screen,WHITE,shape)
+
+        #self.renderShipAt(self.getMP(ship.position.x)        ,self.getMP(ship.position.y)          ,ship.size,ship.rotation)
+        #self.renderShipAt(self.getMP(ship.position.x+width)  ,self.getMP(ship.position.y)          ,ship.size,ship.rotation)
+        #self.renderShipAt(self.getMP(ship.position.x-width)  ,self.getMP(ship.position.y)          ,ship.size,ship.rotation)
+        #self.renderShipAt(self.getMP(ship.position.x)        ,self.getMP(ship.position.y+height)   ,ship.size,ship.rotation)
+        #self.renderShipAt(self.getMP(ship.position.x)        ,self.getMP(ship.position.y-height)   ,ship.size,ship.rotation)
+        if (self.DEBUG):
+            test = pygame.math.Vector2(100,0);
+            pygame.draw.aaline(self.screen, DEBUG_PURPLE,
+                               (self.getMP(ship.position.x + (test.rotate(ship.rotation)/2).x),
+                                self.getMP(ship.position.y+  (test.rotate(ship.rotation)/2).y)),
+                               (self.getMP(ship.position.x + test.rotate(ship.rotation).x),
+                                self.getMP(ship.position.y + test.rotate(ship.rotation).y)))
+            pygame.draw.aaline(self.screen, DEBUG_YELLOW,
+                               (self.getMP(ship.position.x + (test.rotate(Controller.inputRotation) / 2).x),
+                                self.getMP(ship.position.y + (test.rotate(Controller.inputRotation) / 2).y)),
+                               (self.getMP(ship.position.x + test.rotate(Controller.inputRotation).x),
+                                self.getMP(ship.position.y + test.rotate(Controller.inputRotation).y)))
+            test=Controller.inputVector
+            pygame.draw.aaline(self.screen, DEBUG_YELLOW,
+                               (self.getMP(ship.position.x), self.getMP(ship.position.y)),
+                               (self.getMP(ship.position.x + test.rotate(ship.rotation+90).x*100),
+                                self.getMP(ship.position.y + test.rotate(ship.rotation+90).y*100)))
+
+        return
 
     def renderBullet(self,bullet):
-        pygame.draw.circle(self.screen,WHITE,(math.floor(getMP(bullet.position.x)),math.floor(getMP(bullet.position.y))),math.floor(getMP(5)));
+        pygame.draw.circle(self.screen,WHITE,(math.floor(self.getMP(bullet.position.x)),math.floor(self.getMP(bullet.position.y))),math.floor(self.getMP(5)));
+
+    def renderEnemy(self, enemy):
+        rot= enemy.rotation
+        scale=self.getMP(enemy.getCollider())
+        shape = enemy.model.getModel(self.getMP(enemy.position.x), self.getMP(enemy.position.y), rot=rot,
+                                       scale=scale)
+        pygame.draw.polygon(self.screen, WHITE, shape)
+        if (self.DEBUG):
+            c = WHITE
+            if(enemy.AI.mode == "IDLE"):
+                c= DEBUG_PURPLE
+            elif (enemy.AI.mode == "SEARCH"):
+                c = DEBUG_BLUE
+            elif (enemy.AI.mode == "DESTROY"):
+                c = DEBUG_YELLOW
+
+            pygame.draw.circle(self.screen, c,
+                              (math.floor(self.getMP(enemy.position.x)), math.floor(self.getMP(enemy.position.y))),
+                               math.floor(self.getMP(90)),12);
+
+            pygame.draw.aaline(self.screen,DEBUG_BLUE,
+                               (self.getMP(enemy.position.x), self.getMP(enemy.position.y)),
+                               (self.getMP(enemy.position.x )+390* math.cos(math.radians(enemy.rotation+10)), self.getMP(enemy.position.y)+ 390*math.sin(math.radians(enemy.rotation+10)))
+                               )
+            pygame.draw.aaline(self.screen, DEBUG_BLUE,
+                               (self.getMP(enemy.position.x), self.getMP(enemy.position.y)),
+                               (self.getMP(enemy.position.x) + 390 * math.cos(math.radians(enemy.rotation - 10)),
+                                self.getMP(enemy.position.y) + 390 * math.sin(math.radians(enemy.rotation - 10)))
+                               )
+
+            pygame.draw.circle(self.screen, c,
+                               (math.floor(self.getMP(enemy.AI.target[0])), math.floor(self.getMP(enemy.AI.target[1]))),
+                               math.floor(self.getMP(20)), 12);
+
+    def renderLootBox(self,lootbox):
+        rot = lootbox.rotation
+        scale = self.getMP(lootbox.scale)
+        shape = lootbox.model.getModel(self.getMP(lootbox.position.x),self.getMP(lootbox.position.y),rot=rot,scale=scale)
+
+        pygame.draw.polygon(self.screen,WHITE,shape)
+
+        shape2 = lootbox.typeModel.getModel(self.getMP(lootbox.position.x),self.getMP(lootbox.position.y),rot=rot,scale=scale)
+        pygame.draw.polygon(self.screen,(90,90,90),shape2)
+
+        wh = pygame.math.Vector3(WHITE)
+        bl = pygame.math.Vector3(BLACK)
+
+        if(self.lootTimer<1) and self.lootTimer>=0:
+            lootscale = (1-(self.lootTimer)/1)
+            rad=200*lootscale
+
+            pygame.draw.circle(self.screen,(bl.lerp(wh,1-lootscale)),(math.floor(self.getMP(lootbox.position.x)),math.floor(self.getMP(lootbox.position.y))),math.floor(rad),6 if rad>6 else 0);
+
+
 
     def renderParticle(self,particle):
-        pygame.draw.circle(self.screen,WHITE,(math.floor(getMP(particle.position.x)),math.floor(getMP(particle.position.y))),math.floor(getMP(5)));
+        wh =pygame.math.Vector3(WHITE)
+        bl = pygame.math.Vector3(BLACK)
+
+        pygame.draw.circle(self.screen,(bl.lerp(wh,particle.getlifeP())),(math.floor(self.getMP(particle.position.x)),math.floor(self.getMP(particle.position.y))),math.floor(self.getMP(5*particle.scale)));
+    def handleParticleEmitter(self,particleEmitter,delta):
+        particleEmitter.update(delta)
+        if (self.DEBUG):
+            pos =particleEmitter.getPosition()
+            pygame.draw.circle(self.screen,DEBUG_PURPLE,(math.floor(self.getMP(pos.x)),math.floor(self.getMP(pos.y))),2)
+        if(particleEmitter.emitCooldown<=0 and self.particleCount<1000 and particleEmitter.active):
+            for i in range(particleEmitter.emitCount):
+                if(self.particleCount<1000):
+                    p = particleEmitter.getParticle()
+                    if not p is None:
+                        self.particles.append(p)
 
     def render(self,game,delta):
-        self.screen.fill(BLACK)
         if(game.ship.inV>0 and self.shipTimer<=0):
-            self.shipTimer=0.2
+            self.shipTimer=0.3
         if(game.ship.inV>0):
             self.shipTimer-=delta
         else:
             self.shipTimer=0;
 
+        if (self.lootTimer > 0):
+            self.lootTimer -= delta
+        else:
+            self.lootTimer = 7.5;
 
+        self.particleCount = len(self.particles)
         for particle in self.particles:
-            particle.updateMotion(delta)
+            if (not Controller.inputButtons["pause"]):
+                particle.updateMotion(delta)
             self.renderParticle(particle)
             if(not particle.alive):
                 self.particles.remove(particle)
 
-        if(game.ship.thrusting):
-            self.particles.append(Particles.ParticleThruster(game.ship.position.x,game.ship.position.y,game.ship.rotation,game.ship.thrustScale))
 
-        if(DEBUG):
-            print("FPS:{:3.1f} {:3.1f}ms".format(1/delta,delta*1000))
+        if(self.DEBUG):
+            #print("FPS:{:3.1f} {:3.1f}ms".format(1/delta,delta*1000))
             self.screen.blit(self.font.render("FPS:{:3.1f} {:3.1f}ms".format(1/delta,delta*1000),True,DEBUG_BLUE),(0,30))
 
         self.screen.blit(self.font.render("SCORE:{:3.0f}".format(game.score), True,WHITE),(0, 0))
         self.screen.blit(self.font.render("HP:{:3.0f}".format(game.hp), True,WHITE),(0, HEIGHT_P-72))
+
         for i in range(game.hp):
-            self.renderShipAt(20+i*40, HEIGHT_P-72-20,0.5,-90)
+            self.renderShipAt(20+i*40, HEIGHT_P-72-20,20,-90)
         pygame.draw.circle(self.screen,WHITE,(0,0),10)
         for gameObject in game.gameObjects:
             if (isinstance(gameObject, Asteroid.Asteroid)):
                 self.renderAsteroid(gameObject)
-            if (isinstance(gameObject, Ship.Ship) and self.shipTimer<=0.1):
+            if (isinstance(gameObject, Ship.Ship) and self.shipTimer<=0.5):
                 self.renderShip(gameObject,game.WIDTH,game.HEIGHT)
             if (isinstance(gameObject, Bullet.Bullet)):
                 self.renderBullet(gameObject)
-            if (isinstance(gameObject, GameObj.ParticleEmiter)):
-                if (DEBUG):
-                    pygame.draw.circle(self.screen,DEBUG_PURPLE,(math.floor(getMP(gameObject.position.x)),math.floor(getMP(gameObject.position.y))),10)
-                if(gameObject.emitCooldown<=0):
-                    for i in range(gameObject.emitCount):
-                        self.particles.append(gameObject.getParticle())
-            if(DEBUG):
+            if (isinstance(gameObject, Enemy)):
+                self.renderEnemy(gameObject)
+            if (isinstance(gameObject, LootBox)):
+                self.renderLootBox(gameObject)
+            if(self.DEBUG):
                     if(isinstance(gameObject,GameObj.GameObj)):
                         self.renderVelocity(gameObject)
                         self.renderCollider(gameObject)
+                        if(not isinstance(gameObject, Ship.Ship)):
+                            self.renderRotation(gameObject)
+            if(not Controller.inputButtons["pause"]):
+                for particleEmitter in gameObject.particleEmitters:
+                    self.handleParticleEmitter(gameObject.particleEmitters[particleEmitter], delta)
 
-
-
-
-        pygame.display.flip()
+        #pygame.display.flip()
 

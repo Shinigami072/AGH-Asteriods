@@ -1,0 +1,6 @@
+VERTEX,-0.9, 0.1
+VERTEX, -0.1, 1
+VERTEX, 1, 0.1
+VERTEX, 0.9, -1
+VERTEX, -0.1, -0.9
+PARTICLE, explode, ExE ,30

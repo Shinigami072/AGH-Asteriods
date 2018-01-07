@@ -1,0 +1,49 @@
+#Test Comment
+MODEL, files/models/asteroid/asteroidL.index, asteroidLARGE
+MODEL, files/models/asteroid/asteroidXL.index, asteroidXLARGE
+MODEL, files/models/asteroid/asteroidM.index, asteroidMEDIUM
+MODEL, files/models/asteroid/asteroidM.index, asteroidSMALL
+
+#Ship
+MODEL, files/models/ship/ship.index, ship
+MODEL, files/models/ship/enemy/enemy.index, enemy
+
+#LootBox
+MODEL, files/models/drop/drop.index, _lootbox
+
+#Fonts
+FONT, mono-72, files/joystix monospace.ttf ,72
+FONT, mono-36, files/joystix monospace.ttf ,36
+FONT, mono-24, files/joystix monospace.ttf ,24
+FONT, mono-12, files/joystix monospace.ttf ,12
+
+FONT, cow-72, files/FatCow.ttf ,72
+FONT, cow-36, files/FatCow.ttf ,36
+FONT, cow-24, files/FatCow.ttf ,24
+FONT, cow-12, files/FatCow.ttf ,12
+
+FONT_DEFAULT, cow-72
+
+#Sounds
+SOUND, music, files/music/Thrust Sequence.ogg, 0.8
+SOUND, m_menu, files/music/space_0.ogg, 1
+
+
+SOUND, laser0, files/sound/laser3.ogg, 1
+SOUND, laser1, files/sound/weaponfire5.wav, 1
+SOUNDGROUP, laser, laser1
+
+SOUND, explode0, files/sound/explosion1.wav, 0.35
+SOUND, explode1, files/sound/explosion2.wav, 0.35
+SOUND, explode2, files/sound/explosion3.wav, 0.35
+SOUND, explode3, files/sound/explosion4.wav, 0.35
+SOUNDGROUP, explode, explode0:explode1:explode2:explode3
+
+SOUND, explode_0, files/sound/rumble.ogg, 0.35
+SOUND, explode_1, files/sound/synth_explosion.ogg, 0.7
+
+SOUND, pickup, files/sound/pickup.ogg, 1
+
+#UI
+SOUND, click, files/sound/Click_Electronic_04.ogg, 1
+SOUND, change,files/sound/Click_Electronic_03.ogg, 1

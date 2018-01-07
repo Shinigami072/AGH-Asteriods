@@ -1,31 +1,32 @@
 import pygame
 from Screen.Screen import *
-
-BUTTON_HEIGHT = 60;
-BUTTON_WIDTH = 600;
-BUTTON_PAD = 10;
-BUTTON_SELECTED = (200,200,200)
-BUTTON_DESELECTED = (130,130,130)
-
+import View.ScreenRenderer as gui
+import Sound
+import Files
 class MainScreen(Screen):
 
-    def __init__(self, game):
-        super().__init__("Main",game)
-        self.selected=0;
-        self.Menu = ["Start","Options","Quit"]
-        self.Menu_L = len(self.Menu)
+    def __init__(self):
+        super().__init__("Main")
+        self.useRenderer=False
+        self.renderer = gui.ScreenRenderer(self.Width , self.Height)
 
-    def renderScreen(self,screen,delta):
+        menu = gui.ButtonMenu(15,5,25,7,1,{
+            "Play":"Game",
+            "Options":None,
+            "Modeling": "model",
+            "High Scores":"HiScore",
+            "Credits":"Credits",
+            "Quit":"QUIT"
+        },function=self.changeScreen,scale=self.renderer.getMP(1))
 
-        for (i,menu_item) in enumerate(self.Menu):
-            pygame.draw.rect(screen, BUTTON_SELECTED if i==self.selected else BUTTON_DESELECTED , pygame.Rect((self.game.size[0]-BUTTON_WIDTH)/2 , (self.game.size[1]-(BUTTON_HEIGHT+BUTTON_PAD)*self.Menu_L)+i*(BUTTON_PAD+BUTTON_HEIGHT), BUTTON_WIDTH, BUTTON_HEIGHT))
+        self.guiObjects.append(menu)
+
+        Sound.playMusic("m_menu")
+
+    def changeTo(self,game):
+        if Sound.musicChannel.get_sound() != Files.getSound("m_menu"):
+          Sound.playMusic("m_menu")
 
     def handleEvent(self,event):
-        if(event.type == pygame.KEYDOWN):
-            if(event.key == pygame.K_UP or event.key == pygame.K_w):
-                self.selected= (self.selected-1)%self.Menu_L
-            if(event.key == pygame.K_DOWN or event.key == pygame.K_s):
-                self.selected= (self.selected+1)%self.Menu_L
-            if(event.key == pygame.K_RIGHT or event.key == pygame.K_d or event.key == pygame.K_RETURN):
-                self.game.next_screen = Screen.screenDict[self.Menu[self.selected]]
-            print(event.key)
+        super().handleEvent(event)
+        pass

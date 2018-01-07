@@ -1,0 +1,6 @@
+# MEDIUM/SMALL asteroid 0
+VERTEX, 0, 0.1
+VERTEX, 1, 0.1
+VERTEX, 1, 1
+VERTEX, -1, 0.6
+PARTICLE, explode, ExE ,30
