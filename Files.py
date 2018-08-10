@@ -122,8 +122,22 @@ def loadSound(file,name,volume):
     SOUNDS[name]=pygame.mixer.Sound(file)
     SOUNDS[name].set_volume(volume)
 
+import Sound
+def readOptions():
+    options = open("files/options")
+    print("Options\n",options)
+    Sound.soundVolume = float(options.readline())
+    Sound.musicVolume = float(options.readline())
+    options.close()
+    print("read Options")
+def writeOptions():
+    print("writing Options")
+    options = open("files/options",mode="w")
+    options.write("{:3.1f}\n".format(Sound.soundVolume))
+    options.write("{:3.1f}\n".format(Sound.musicVolume))
+    options.close()
 def loadData():
-
+    readOptions()
     modelList = open("files/models.index")
     for model in modelList:
         if (model[0] == '#'):

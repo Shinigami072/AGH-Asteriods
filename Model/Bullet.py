@@ -3,12 +3,12 @@ from Model.Asteroid import Asteroid
 from Model.Ship import Ship
 import Model.Enemy
 import pygame
-import math
+
 class Bullet(GameObj):
-    def __init__(self,x,y,speed,angle,owner):
+    def __init__(self,x,y,speed,angle,owner=None,life=2):
         super().__init__(x,y)
         self.velocity=pygame.math.Vector2(speed,0).rotate(angle);
-        self.life = 2
+        self.life = life
         self.owner=owner
         self.mass=250
 
@@ -27,7 +27,9 @@ class Bullet(GameObj):
         if (isinstance(a, Ship)):
             print("Ship")
             a.dead =True
+
         self.alive=False
+
     def isCollideable(self,a):
         return ( isinstance(a,Asteroid) or isinstance(a,Model.Enemy.Enemy) and not isinstance(self.owner,Model.Enemy.Enemy)) or (isinstance(a, Ship) and not isinstance(self.owner,Ship))
     def getCollider(self):

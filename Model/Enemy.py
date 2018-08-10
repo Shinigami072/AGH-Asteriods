@@ -1,14 +1,4 @@
-#TODO: menu
-#TODO: ememies
 
-#TODO: poziomy trudności
-#TODO: endgame
-
-#TODO: Sounds
-
-#TODO: shipChoice
-#TODO: load models
-#TODO: graphics update
 import Sound
 from Model.GameObj import GameObj
 from pygame.math import Vector2
@@ -17,6 +7,7 @@ import Model.Asteroid
 import random
 import math
 import Files
+from Model.LootBox import LootBox
 class AI:
     MODES = ["IDLE","SEARCH","DESTROY"]
     SEARCHTIMER_MAX=10
@@ -24,19 +15,23 @@ class AI:
         self.mode="IDLE"
         self.inputVector = Vector2(0,0)
         self.inputRotation=0
+
         self.searchtimer = 0
         self.timer2 = 0
 
         self.target = (-1,-1)
         self.searchArea = None
-        self.searchangle=0
+        self.searchangle=10
+        self.searchdist=500
         self.targetReached=False
+
+        self.shotangle =10
 
 
     def chaseTaget(self,body,delta):
+
         # KOD FIZYCZNY #
-        # ZAPYTAJ RAFAłA jak działa
-        # nikt nie jest pewien dlaczego działa
+        # poniższy kod jest implementacja równań które wyprowadził rafał
 
         dis = (Vector2(self.target) - body.position)
         dist = dis.length()
@@ -44,16 +39,16 @@ class AI:
         angle = dis.angle_to(Vector2(1, 0).rotate(body.rotation))
         self.inputRotation = body.rotation - angle
 
-        deltasq = math.sqrt(2*(body.velocity.x)**2 + 4*body.maxAccel*math.fabs(dis.x))
-        t1 = (-2*math.fabs(body.velocity.x)+deltasq)/(2*body.maxAccel)
-        t2=math.fabs(body.velocity.x)/body.maxAccel
+        deltasq = math.sqrt(2*(body.velocity.x) ** 2 + 4*body.maxAccel * math.fabs(dis.x))
+        t1 = (-2*math.fabs(body.velocity.x) + deltasq) / (2*body.maxAccel)
+        t2 = math.fabs(body.velocity.x) / body.maxAccel
 
-        if (t1-delta > 0):
-            if(dis.x >0):
+        if (t1 - delta > 0):
+            if (dis.x > 0):
                 self.inputVector.x = 1
             else:
                 self.inputVector.x = -1
-        elif (t2-delta > 0):
+        elif (t2 - delta > 0):
             if (dis.x > 0):
                 self.inputVector.x = -1
             else:
@@ -62,8 +57,8 @@ class AI:
             self.inputVector.x = 0
             body.velocity.x = 0
 
-        deltasq = math.sqrt(2 * (body.velocity.y) ** 2 + 4 * body.maxAccel * math.fabs(dis.y))
-        t1 = (-2 * math.fabs(body.velocity.y) + deltasq) / (2 * body.maxAccel)
+        deltasq = math.sqrt(2*(body.velocity.y) ** 2 +4* body.maxAccel * math.fabs(dis.y))
+        t1 = (-2*math.fabs(body.velocity.y) + deltasq) / (2* body.maxAccel)
         t2 = math.fabs(body.velocity.y) / body.maxAccel
 
         if (t1 - delta > 0):
@@ -79,8 +74,11 @@ class AI:
         else:
             self.inputVector.y = 0
             body.velocity.y = 0
-        if(self.inputVector.x ==0 and self.inputVector.y ==0):
-            self.targetReached=True
+        ###
+        #koniec kodu fizycznego
+
+        if (self.inputVector.x == 0 and self.inputVector.y == 0):
+            self.targetReached = True
 
 
 
@@ -92,32 +90,41 @@ class AI:
         dis = (game.ship.position - body.position)
         dist = dis.length()
         angle = dis.angle_to(Vector2(1, 0).rotate(body.rotation))
-        #self.target = (body.position.x + 100, body.position.y)
-        self.searchtimer += delta
 
+        self.searchtimer += delta
         self.targetReached = False
         self.chaseTaget(body, delta)
 
-        #if not self.chase:
-        #    self.chaseTaget(body,delta)
-        #    self.chase=True
+        self.shotangle = 50/(game.score/100+1)
+        if(self.shotangle < 0.3):
+         self.shotangle = 0
+
+        if game.ship.dead:
+            self.mode ="IDLE"
+
         if( self.searchArea is None):
             print("setting")
             self.searchArea = body.position
 
         if(self.mode == "IDLE"):
+            self.searchdist = 500*math.sqrt(game.level())
             if(self.searchtimer >= AI.SEARCHTIMER_MAX  or self.targetReached):
                 self.searchtimer=0
                 self.target = (random.random()*game.WIDTH, random.random()*game.HEIGHT)
-            if(dist<500):
+            if(dist<self.searchdist):
                 self.searchArea = (body.position.x,body.position.y)
                 self.mode= "SEARCH"
                 self.searchtimer=0
 
         elif(self.mode =="SEARCH"):
-            if math.fabs(angle)<=10 and dist <500:
+            self.searchangle=10*math.sqrt(game.level())
+            self.searchdist = 500*math.sqrt(game.level())
+            if math.fabs(angle)<=self.searchangle and dist <self.searchdist:
                 self.mode="DESTROY"
+                game.addMsg("Alien weapons charging")
+                Sound.playSound("change")
                 self.searchtimer=0
+                self.timer2=3
             else:
                 self.timer2-=delta
                 if(self.timer2<0 or self.targetReached):
@@ -130,15 +137,28 @@ class AI:
                 self.mode="IDLE"
 
         elif(self.mode =="DESTROY"):
-            if math.fabs(angle) <= 30:
+            self.searchangle=30*math.sqrt(game.level())
+            self.searchdist = 3000
+            if math.fabs(angle) <= self.searchangle:
                 self.searchtimer=0
-
                 self.target = (game.ship.position.x,game.ship.position.y)-dis.normalize()*300
                 self.inputRotation= body.rotation - angle
+                self.timer2-=delta
+                if(self.timer2<0):
+                    self.timer2=2/game.level()
+                    Sound.playSound("laser")
+                    b = Model.Bullet.Bullet(body.position.x, body.position.y, 1000, -dis.rotate(
+                        self.shotangle*(-1 + 2 * random.random())).angle_to(Vector2(1, 0)), body)
+                    game.gameObjects.append(b)
+
             elif (self.searchtimer >= AI.SEARCHTIMER_MAX or self.targetReached):
                 self.mode = "SEARCH"
+                game.addMsg("Alien tracking scrambled")
+                Sound.playSound("click")
                 self.searchArea = (body.position.x,body.position.y)
                 self.searchtimer=0
+            else:
+                self.timer2=3
 
 
 
@@ -154,6 +174,7 @@ class Enemy(GameObj):
         self.thrustScale=1;
         self.scale=50
         self.maxAccel=200
+        game.addMsg("Alien presence detected")
 
     def getCollider(self):
         return 50
@@ -164,39 +185,32 @@ class Enemy(GameObj):
         Sound.playSound("explode")
         self.particleEmitters["explode"].active=True
         self.alive=False
-        game.score +=150
+        game.addMsg("Alien presence vanished")
+        if(game.ship.dead):
+            game.addMsg("from the Grave +100")
+            game.score+=100
+
+        game.gameObjects.append(Model.LootBox.LootBox(
+            random.choice([-1,1])*random.random()*10+self.position.x,
+            random.choice([-1, 1]) * random.random() * 10 + self.position.y, game
+            , random.choice(["score1"]*10+["invin"]+["score2"]*4+["score3"])
+        ))
+
 
     def isInteractable(self, a):
         return False
 
     def update(self,delta):
-        if(self.velocity.length()>self.maxAccel*1.5):
+        if(self.velocity.length()>self.maxAccel*1.5): #limitowanie prędkości
             self.velocity.scale_to_length(self.maxAccel*1.5)
-        #self.cooldown -= delta
-        #dir = (self.game.ship.position+self.game.ship.velocity*dist/1000 - self.position)
-        #self.rotation = -self.velocity.angle_to(Vector2(1,0))
-        #self.velocity = Vector2(100, 0).rotate(self.rotation)  # 100*dir
 
-        #self.velocity= 300*self.dir + 300*math.sin(self.cooldown/(self.maxCooldown/2)*2*math.pi)*self.dir.rotate(90)
-
-        #if (self.cooldown <= 0):
-        #   Sound.playSound("laser0")
-        #    self.dir = self.dir.rotate(90 *(-1+2*random.random()))
-        #    self.cooldown = self.maxCooldown
-        #    b = Model.Bullet.Bullet(self.position.x, self.position.y, 1000, -dir.rotate(10/(self.game.score/100+1)*(-1+2*random.random())).angle_to(Vector2(1,0)), self)
-        #    self.game.gameObjects.append(b)
         self.AI.update(delta,self.game,self)
 
-        self.rotVel = 4*720*self.getQuickestRot(self.AI.inputRotation)/360#Controller.inputVector.x*self.maxRotation*delta
-        #self.acceleration =Vector2(0,0)
-        #if self.AI.inputVector.y > 0 or self.AI.inputVector.y <0:
-         #   self.acceleration += self.maxAccel*self.AI.inputVector.y#*Vector2(1, 0).rotate(self.rotation)
+        #zarzadzenie rcuhem przez AI
+        self.rotVel = 4*self.getQuickestRot(self.AI.inputRotation)
+        self.acceleration = self.maxAccel* self.AI.inputVector
 
-        #if self.AI.inputVector.x > 0 or self.AI.inputVector.x < 0:
-
-        self.acceleration = self.maxAccel* self.AI.inputVector# * Vector2(0, 1).rotate(self.rotation)
-
-        #thrustconrol
+        #thrustconrol - zarzadzenie emiterami cząsteczek
         thrustc = self.AI.inputVector.rotate(self.rotation+90)
         self.setGroupActive("thrusters", False,True)
         self.setGroupActive("thrusterUP", thrustc.y>0.2)
@@ -205,7 +219,6 @@ class Enemy(GameObj):
         self.setGroupActive("thrusterRIGHT", thrustc.x>0.2)
         self.setGroupActive("thrusterRotLeft", self.rotVel>15)
         self.setGroupActive("thrusterRotRight", self.rotVel<-15)
-
 
 
         self.updateMotion(delta)

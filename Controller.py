@@ -14,18 +14,17 @@ controller=False
 keyboardRedirect=False
 
 conMenuVal=0;
-inputButtons = {"shot": False,"pause":False,"debug": False,"inV": False,"scr": False,"shw": False}
+inputButtons = {"shot": False,"pause":False,"debug": False,"inV": False,"revive":False}
 
+controllerNames = {0:"(A)",1:"(B)",2:"(X)",3:"(Y)",4:"(LB)",5:"(RB)",6:"(back)",7:"(Start)"}
 keyBindings ={
     "Controller":{
         "menu_UP":-1,
         "menu_DOWN":-1,
         "menu_Confirm":0,
-
+        "revive": 0,
         "game_pause": 7,
         "debug":6
-
-        #"shot":0
     },
     "Keyboard":{
                 "menu_UP":pygame.K_w,
@@ -40,12 +39,18 @@ keyBindings ={
                 "rot_LEFT": pygame.K_q,
                 "rot_RIGHT":pygame.K_e,
                 "shot":pygame.K_SPACE,
+                "revive": pygame.K_SPACE,
 
                 "debug": pygame.K_c
 
     },
 
 }
+def getName(str):
+    if(keyboard):
+        return pygame.key.name(keyBindings["Keyboard"][str])
+    else:
+        return controllerNames[keyBindings["Controller"][str]]
 
 #Translacja wszyskich eventów wejściowych, na dane kontrolujace
 
@@ -104,17 +109,12 @@ def eventHandle(event):
             rotKey =1
         if(event.key == keyBindings["Keyboard"]["shot"]):
             inputButtons["shot"]=True
-
-        if (event.key == pygame.K_x):
-            inputButtons["scr"] = True
-        if (event.key == pygame.K_z):
-            inputButtons["shw"] = True
+        if (event.key == keyBindings["Keyboard"]["revive"]):
+            inputButtons["revive"] = True
         if (event.key == keyBindings["Keyboard"]["game_pause"]):
             inputButtons["pause"] = not inputButtons["pause"]
         if (event.key == keyBindings["Keyboard"]["debug"]):
             inputButtons["debug"] = not inputButtons["debug"]
-        if (event.key == pygame.K_i):
-            inputButtons["inV"] = True
 
     #wszyskie evety podniesienia przycisku
     if(event.type == pygame.KEYUP):
@@ -130,14 +130,10 @@ def eventHandle(event):
             handleMovement(inputVector.x-1,inputVector.y);
         if (event.key == keyBindings["Keyboard"]["rot_LEFT"] or event.key == keyBindings["Keyboard"]["rot_RIGHT"]):
             rotKey = 0
-        if (event.key == pygame.K_x):
-            inputButtons["scr"] = False
-        if (event.key == pygame.K_z):
-            inputButtons["shw"] = False
-        if(event.key == keyBindings["Keyboard"]["shot"]):
-            inputButtons["shot"]=False
-        if (event.key == pygame.K_i):
-            inputButtons["inV"] = False
+        if (event.key == keyBindings["Keyboard"]["shot"]):
+            inputButtons["shot"] = False
+        if (event.key == keyBindings["Keyboard"]["revive"]):
+            inputButtons["revive"] = False
 
     #ebenty kontrollera
     if(event.type == pygame.JOYAXISMOTION):
@@ -201,7 +197,8 @@ def eventHandle(event):
             menuActivate=True
         if (event.button == keyBindings["Controller"]["game_pause"]):
             inputButtons["pause"] = not inputButtons["pause"]
-
+        if (event.button == keyBindings["Controller"]["revive"]):
+            inputButtons["revive"] = True
         if(event.button == keyBindings["Controller"]["debug"]):
             inputButtons["debug"] = not inputButtons["debug"]
         else:
@@ -210,7 +207,8 @@ def eventHandle(event):
     if(event.type == pygame.JOYBUTTONUP):
         if (event.button == keyBindings["Controller"]["menu_Confirm"]):
             menuActivate = False
-
+        if (event.button == keyBindings["Controller"]["revive"]):
+            inputButtons["revive"] = False
     #d-pad kontrollera
     if(event.type == pygame.JOYHATMOTION):
         controller=True

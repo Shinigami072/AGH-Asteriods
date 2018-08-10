@@ -90,11 +90,22 @@ the other font:
 
  --------------------AUDIO--------------------
  =============================================
- #                                           #
- #TODO:do any audio                          #
- #like seriously                             #
- #anything                                   #
- #                                           #
+
+Menu click Sound:
+    littlerobotsoundfactory
+Explosion sound:
+    Michel Baradari
+Weapon Sound:
+    Michael Kurinnoy, Viewizard
+
+Item Pickup Sound:
+    LFA
+
+Menu music:
+    Alexandr Zhelanov
+Game music:
+    Matthew Pablo
+
  -------------IDEAS-&-INSPIRATION-------------
  =============================================
 
@@ -103,7 +114,7 @@ Original Asteroids game:
     Ed Logg
     Dominic Walsh
 
-Rafał Ogórek - rozwiązanie fizyki [not impl]
+Rafał Ogórek - rozwiązanie fizyki
 
  ---------------------------------------------
  =============================================

@@ -5,7 +5,7 @@ class HighScore:
     def __str__(self):
         return self.__repr__()
     def __repr__(self):
-        return "{} - {}\n".format(self.score,self.name)
+        return "{:010d} - {:^13.13s}\n".format(self.score,self.name)
 
 class HighScores:
     def __init__(self):
@@ -19,7 +19,7 @@ class HighScores:
         for s in F:
             s = s.split(" - ")
 
-            self.scores.append(HighScore(s[1][0:-1],(int)(s[0])))
+            self.scores.append(HighScore(s[1][0:-1].strip(),(int)(s[0])))
         F.close()
 
         self.scores = sorted(self.scores,key=lambda s: s.score,reverse=True )

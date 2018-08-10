@@ -1,10 +1,4 @@
 import View.Renderer
-import pygame
-import math
-import random
-import Files
-import Sound
-import Controller
 from Screen.GUI import *
 
 class ScreenRenderer(View.Renderer.Renderer):
@@ -12,30 +6,46 @@ class ScreenRenderer(View.Renderer.Renderer):
         super().__init__(width,height)
 
     def renderString(self,string):
-        dy =0
-        self.font = Files.FONTS[string.font]
-        for strin in string.string.split("\n"):
-            if(len(strin.strip()) >0):
-                self.screen.blit(self.font.render(strin, True,
+        dy =0 #przesunięcie
+        self.font = Files.FONTS[string.font] #wybrany font
+        for strin in string.string.splitlines():
+            if(len(strin.strip()) >0):#sprawdzenie pustości
+                self.screen.blit(self.font.render(strin, True,#wyrenderowanie stringa
                         string.color if strin.strip()[0]!='#' else View.Renderer.DEBUG_PURPLE),
                         (self.getMP(string.x), self.getMP(string.y+dy)))
             dy+=string.height
     def renderButton(self,button):
         width =0
         if(button.state==0):
-            width=3
+            width=3 #ustawienie wypełnienia
         pygame.draw.rect(self.screen,
                          button.color,
                          pygame.Rect(self.getMP(button.x),self.getMP(button.y),self.getMP(button.width),self.getMP(button.height)), width
                          )
-        self.renderString(button.string)
 
-    def renderButtons(self,buttonmenu):
+        self.renderString(button.string)#wyrenderowanie wewnętrznego stirnga
+
+    def renderButtons(self,buttonmenu):#renderowanie
         for b in buttonmenu.buttons:
             self.renderButton(b)
-    def render(self,screen,delta):
-        #self.screen.fill(View.Renderer.BLACK)
-        for guiEl in screen.guiObjects:
+
+    def renderValueBar(self, valuebar):
+        #obramówka
+        pygame.draw.rect(self.screen,
+                         valuebar.color,
+                         pygame.Rect(self.getMP(valuebar.x), self.getMP(valuebar.y), self.getMP(valuebar.width),
+                                     self.getMP(valuebar.height)), 3
+                         )
+        #wypełnienie
+        pygame.draw.rect(self.screen,
+                         valuebar.color,
+                         pygame.Rect(self.getMP(valuebar.x), self.getMP(valuebar.y), self.getMP(valuebar.width*(valuebar.value/valuebar.max)),
+                                     self.getMP(valuebar.height)), 0
+                         )
+    def render(self,guiObjects,delta):
+        self.font = Files.FONTS["default"]
+
+        for guiEl in guiObjects:
             if(not guiEl.visible):
                 continue
             if( isinstance(guiEl,StringC)):
@@ -46,3 +56,5 @@ class ScreenRenderer(View.Renderer.Renderer):
                 self.renderButton(guiEl)
             if (isinstance(guiEl, ButtonMenu)):
                 self.renderButtons(guiEl)
+            if (isinstance(guiEl, ValueBar)):
+                self.renderValueBar(guiEl)

@@ -15,10 +15,10 @@ class GameObj:
         self.particleEmitters = {}
         self.rotation = 0
         self.scale = 1
-        self.modelScale=1
         self.rotVel =0;
         self.maxAccel=50;
         self.mass=1;
+        self.bias=0
         self.alive = True
         self.model=None
         self.harmful=True
@@ -98,6 +98,8 @@ class GameObj:
 
     def checkCollision(self, a):
             if None is self.getCollider() or a.getCollider() is None or not self.alive or not a.alive:
+                return False
+            if not (self.isCollideable(a) and a.isCollideable(self)):
                 return False
             diff = self.position-a.position
             dist = (self.getCollider()+a.getCollider())**2

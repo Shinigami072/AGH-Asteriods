@@ -10,7 +10,7 @@ import Files
 class GameOverScreen(Screen):
 
 
-    def __init__(self,hiscore):
+    def __init__(self,hiscore,scale):
         super().__init__("GameOver")
         self.useRenderer=False
         self.renderer = gui.ScreenRenderer(self.Width ,self.Height )
@@ -19,7 +19,7 @@ class GameOverScreen(Screen):
             "Retry": "Game",
             "High Score":"HiScore",
             "Main Menu": "Main"
-        }, function=self.changeScreen, scale=self.renderer.getMP(1))
+        }, function=self.changeScreen, scale=scale)
         self.inputbox=GUI.Input("PLAYER",90,5,67,7,id=1,menuCount=6,maxwidth=13,font="mono-72")
         menu.add(self.inputbox)
 
@@ -54,10 +54,10 @@ class GameOverScreen(Screen):
                           "You need to score more than {} to be remembered.\n\n         " \
                           "Current High Score: {}".format(game.score,self.hiScoreT.highscore,self.hiScoreT.highscore)
 
-
-    def changeScreen(self,name):
+    def changeScreen(self,name=None):
         print("changeMain")
         self.nextScreen = "Main"
+
         if(self.newScore is not None and self.inputbox.visible):
             self.newScore.name = self.inputbox.string.string
             self.hiScoreT.add(self.newScore)

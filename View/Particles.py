@@ -10,11 +10,9 @@ class Particle:
         self.position =pygame.math.Vector2(x,y)
         self.velocity =pygame.math.Vector2(0,0)
         self.acceleration = pygame.math.Vector2(0,0)
-        self.rotation = 0
         self.scale=1
         self.maxlife = maxlife
         self.life =self.maxlife
-        self.mass=0.1;
         self.alive = True
 
     def getlifeP(self):
@@ -32,6 +30,19 @@ class Particle:
         pass
 
 
+class FireParticle(Particle):
+    def __init__(self, x, y,velocity,scale):
+        super().__init__(x,y,maxlife=0.6*(random.random()*0.5+0.5))
+        self.velocity=velocity
+        self.scale=0
+        self.maxScale=5+random.random()*(scale-5)
+
+    def updateMotion(self,delta):
+        self.velocity.x += 6 * (random.random() - 0.5)
+        self.velocity.y += 6 * (random.random() - 0.5)
+        self.scale=(1-self.getlifeP())*self.maxScale
+
+        super().updateMotion(delta)
 
 class ExplosionParticle(Particle):
     def __init__(self, x, y,velocity):
@@ -43,6 +54,7 @@ class ExplosionParticle(Particle):
     def updateMotion(self,delta):
         super().updateMotion(delta)
         self.scale=self.getlifeP()
+
 
 class ParticleThruster(Particle):
     def __init__(self,x,y,ship,rotation=0,scale=None,scaleVel=1):

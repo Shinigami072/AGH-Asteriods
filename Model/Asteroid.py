@@ -10,12 +10,13 @@ from pygame.math import Vector2
 ASTEROID_SIZE = 60
 ASTEROID_MASS = 100000
 ASTEROID_SIZE_NAMES = ("XLARGE","LARGE","MEDIUM","SMALL")
+#todo:set score
 ASTEROID_SIZES = {
-    "XLARGE": {"size": ASTEROID_SIZE*1.5, "mass": 18 * ASTEROID_MASS, "points": 1,"velocity":15, "maxCracks": 6,
+    "XLARGE": {"size": ASTEROID_SIZE*1.5, "mass": 16 * ASTEROID_MASS, "points": 1,"velocity":15, "maxCracks": 6,
               "minCracks": 5, "possibleCracks": ("LARGE", "LARGE", "LARGE", "MEDIUM", "MEDIUM", "SMALL")},
     "LARGE": {"size": ASTEROID_SIZE  , "mass":  16 * ASTEROID_MASS, "points": 1,"velocity":30,"maxCracks":5,"minCracks":4,"possibleCracks":("MEDIUM","MEDIUM","MEDIUM","SMALL")},
-    "MEDIUM": {"size": ASTEROID_SIZE/2, "mass": 4 * ASTEROID_MASS, "points": 5,"velocity":60,"maxCracks":4,"minCracks":2,"possibleCracks":("SMALL","SMALL")},
-    "SMALL": {"size": ASTEROID_SIZE/4, "mass": 2 * ASTEROID_MASS, "points": 10,"velocity":90,"maxCracks":0,"minCracks":0, "possibleCracks":None}
+    "MEDIUM": {"size": ASTEROID_SIZE/2, "mass": 8 * ASTEROID_MASS, "points": 5,"velocity":60,"maxCracks":4,"minCracks":2,"possibleCracks":("SMALL","SMALL")},
+    "SMALL": {"size": ASTEROID_SIZE/4, "mass": 4 * ASTEROID_MASS, "points": 10,"velocity":90,"maxCracks":0,"minCracks":0, "possibleCracks":None}
 
 }
 #przechowywanie danych o asteroidach
@@ -27,19 +28,21 @@ class Asteroid(GameObj):
             self.size = random.choice(ASTEROID_SIZE_NAMES)
         else:
             self.size = size
+
         self.velocity = pygame.math.Vector2(ASTEROID_SIZES[self.size]["size"],0).rotate(random.random()*360)
         self.mass = ASTEROID_SIZES[self.size]["mass"]
         self.hit = False
         self.rotation = random.random()*360
         self.rotVel = random.choice([-1,1])*random.random()*15
-        self.appearance = random.randint(0,128)
         self.setModel(Files.ModelGroups.get("asteroid"+size).getRandomModel())
         self.particleEmitters["explode"].active=False
+        self.scale = ASTEROID_SIZES[self.size]["size"]
+        self.bias=120
 
     def getCollider(self):
         return ASTEROID_SIZES[self.size]["size"]
     def add(self):
-        Asteroid.count+=1
+        Asteroid.count+=1#montoring ilości asteroid
         return self
     #co zrobić w wypadku gdy rozpada się asteroida
     def crack(self,game,i):
@@ -54,8 +57,11 @@ class Asteroid(GameObj):
         #wyjście z funkcji jeżeli nie mamy na co się rozpaść
         if ASTEROID_SIZES[self.size]["possibleCracks"] is None :
             return
-        if(random.random()<0.1):
-            game.gameObjects.append(LootBox(self.position.x,self.position.y,game))
+
+        if(random.random()<0.15):
+            game.gameObjects.append(LootBox(self.position.x,self.position.y,game,
+                                            type=random.choice(["hp","hp","score1","score1","score3"])))
+
         newAsteroidMass = 0
         asteroids = []
         #dodawanie asteroid aż mamy masę

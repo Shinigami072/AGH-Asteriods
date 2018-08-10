@@ -1,2 +1,6 @@
 MODEL, box, box_bg
 MODEL, hp, lootbox_hp
+MODEL, score1, lootbox_score1
+MODEL, score2, lootbox_score2
+MODEL, score3, lootbox_score3
+MODEL, invin, lootbox_invin

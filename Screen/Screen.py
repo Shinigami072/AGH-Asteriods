@@ -1,4 +1,3 @@
-from pygame.locals import *
 import pygame
 import View.Renderer
 import Controller
@@ -12,24 +11,26 @@ class Screen:
             raise "already exists"
         else:
             Screen.screenDict[name]= self
-        self.useRenderer=True
-        self.renderer=None
+        self.guiObjects = []
+        self.renderers=["screen"]
+        self.renderData={"screen":self.guiObjects}
         self.mousepos=(0,0)
         self.mousebut=[False,False,False]
-        self.guiObjects = []
         self.Width = 160
         self.Height =90
         self.nextScreen= None
-        self.lastMenu = Controller.menuSelector
 
     def handleEvent(self,event):
         if(event.type ==pygame.MOUSEMOTION or event.type == pygame.MOUSEBUTTONDOWN or event.type == pygame.MOUSEBUTTONUP):
             self.mouseDriven=True
             Controller.keyboard = False
             Controller.controller = False
+
             if Controller.inputButtons["debug"]:
                 print(event,pygame.mouse.get_pos())
+
             self.mousepos=(event.pos[0]/View.Renderer.WIDTH_P*self.Width,event.pos[1]/View.Renderer.HEIGHT_P*self.Height)
+
             if(event.type == pygame.MOUSEBUTTONDOWN):
                 if(event.button-1 <3):
                     self.mousebut[event.button-1]=True
@@ -53,12 +54,14 @@ class Screen:
 
     def changeTo(self,game):
         pass
+
     def updateScreen(self,delta):
 
         for guiO in self.guiObjects:
+            if (isinstance(guiO, GUI.ValueBar)):
+                guiO.update()
             if(isinstance(guiO,GUI.ButtonMenu)):
-                for b in guiO.buttons:
-                    b.update(self.mousepos, self.mousebut)
+                guiO.update(self.mousepos, self.mousebut)
             if(isinstance(guiO,GUI.Button)):
                 guiO.update(self.mousepos,self.mousebut)
 

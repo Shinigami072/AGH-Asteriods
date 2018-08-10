@@ -6,6 +6,14 @@ music :pygame.mixer.Sound = None
 musicChannel :pygame.mixer.Channel = None
 soundChannels :typing.Sequence[pygame.mixer.Channel] = None
 
+musicVolume =100
+soundVolume = 100
+
+def setVolume():
+    musicChannel.set_volume(musicVolume/100)
+    for soundC in soundChannels:
+        soundC.set_volume(soundVolume / 100)
+
 def init():
     global musicChannel
     global soundChannels
@@ -25,14 +33,16 @@ def playMusic(name ,fadeout=0,fadein=500):
     if(music is not None):
         music.fadeout(fadeout)
     music = Files.getSound(name)
-    musicChannel.set_volume(0.5)
+    musicChannel.set_volume(musicVolume/100)
     musicChannel.play(music,-1)
 def getSound(sound):
     return Files.getSound(sound)
+
 def playSound(sound):
 #
     for soundC in soundChannels:
         if(soundC.get_sound() is None):
+            soundC.set_volume(soundVolume / 100)
             soundC.play(Files.getSound(sound))
             return
     print("SoundOverflow")

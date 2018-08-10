@@ -3,6 +3,7 @@ import Screen.Screen
 import View.ScreenRenderer as gui
 from Files import Model
 from Screen.GUI import *
+import math
 class ModelScreen(Screen.Screen.Screen):
     def __init__(self):
         super().__init__("model")
