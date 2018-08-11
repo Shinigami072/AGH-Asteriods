@@ -13,7 +13,7 @@ class HighScores:
         self.highscore = 0
         self.lowscore = 0
 
-    def read(self):
+    def read(self): #wczytanie z pliku
         self.scores = []
         F = open("files/HighScores")
         for s in F:
@@ -26,7 +26,7 @@ class HighScores:
         self.highscore = self.scores[0].score
         self.lowscore = (self.scores[len(self.scores)-1]).score
 
-    def write(self):
+    def write(self): # zapizanie do pliku
 
         F = open("files/HighScores",mode="w")
         for s in  self.scores:

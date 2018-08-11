@@ -3,7 +3,7 @@ import random
 import pygame
 import typing
 from Model.ParticleEmitter import *
-
+#wczytanie plików gry
 FONTS: typing.Dict[str, pygame.font.Font]={}
 SOUNDS: typing.Dict[str, pygame.mixer.Sound]= {}
 SOUNDSGROUP: typing.Dict[str, typing.Sequence[str]]= {}
